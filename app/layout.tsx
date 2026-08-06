@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
-const siteUrl = process.env.NEXTAUTH_URL || 'http://localhost:5173';
+const siteUrl = process.env.NEXTAUTH_URL!;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
