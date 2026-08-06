@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 
 const sessionTimeoutInSeconds =
-  Number(process.env.SESSION_TIMEOUT_MINUTES || 10) * 60;
+  Number(process.env.SESSION_TIMEOUT_MINUTES! || 10) * 60;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -113,5 +113,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET!,
 };
