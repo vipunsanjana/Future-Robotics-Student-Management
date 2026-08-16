@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Cpu,
   Sparkles,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const navItems = [
 
 const adminItems = [
   { href: '/dashboard/users', label: 'User Management', icon: UserCog },
+  { href: '/dashboard/settings', label: 'Account Settings', icon: Settings },
 ];
 
 function BrandHeader({ onClick }: { onClick?: () => void }) {
@@ -70,7 +72,6 @@ function BrandHeader({ onClick }: { onClick?: () => void }) {
   );
 }
 
-{/* Header Greeting Component (Visible on Desktop & Mobile) */}
 function HeaderGreeting() {
   const { data: session } = useSession();
   const user = session?.user;
@@ -98,7 +99,6 @@ function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Main Navigation Group */}
       <div className="space-y-2">
         <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
           Main Menu
@@ -129,7 +129,6 @@ function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
 
-      {/* Admin Section (Conditional) */}
       {isAdmin && (
         <div className="space-y-2 pt-2 border-t border-border/30">
           <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
@@ -163,8 +162,7 @@ function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-{/* Sidebar Bottom Action Menu */}
-function SidebarBottomActions() {
+function SidebarBottomActions({ onNavigate }: { onNavigate?: () => void }) {
   const { data: session } = useSession();
   const user = session?.user;
   const initials =
@@ -177,8 +175,11 @@ function SidebarBottomActions() {
 
   return (
     <div className="mt-auto border-t border-border/40 p-4 space-y-3 shrink-0 bg-background/30 backdrop-blur-md">
-      {/* Quick Profile Card */}
-      <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/60 p-2.5 shadow-sm">
+      <Link
+        href="/dashboard/settings"
+        onClick={onNavigate}
+        className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/60 p-2.5 shadow-sm cursor-pointer transition-all hover:border-primary/50 group block"
+      >
         <Avatar className="h-9 w-9 ring-1 ring-border/50 shrink-0">
           <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
           <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
@@ -186,12 +187,12 @@ function SidebarBottomActions() {
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="truncate text-xs font-bold text-foreground">{user?.name}</span>
+          <span className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">{user?.name}</span>
           <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
         </div>
-      </div>
+        <Settings className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+      </Link>
 
-      {/* Direct Sign Out Button */}
       <Button
         variant="ghost"
         size="sm"
@@ -242,6 +243,12 @@ function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer font-medium">
+          <Link href="/dashboard/settings">
+            <Settings className="mr-2 h-4 w-4" /> Account Settings
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive cursor-pointer font-medium"
           onClick={() => signOut({ callbackUrl: '/login' })}
@@ -258,7 +265,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-background via-secondary/10 to-primary/5">
-      {/* Fixed-size Desktop Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-border/40 bg-card/60 backdrop-blur-xl lg:flex lg:flex-col justify-between overflow-hidden">
         <div className="flex flex-col flex-1 min-h-0">
           <div className="flex h-16 items-center shrink-0 border-b border-border/40 px-6">
@@ -269,13 +275,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Bottom Profile & Sign Out Controls */}
         <SidebarBottomActions />
       </aside>
 
-      {/* Main Section */}
       <div className="flex flex-1 flex-col min-w-0 min-h-screen">
-        {/* Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -297,11 +300,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <DashboardNav onNavigate={() => setMobileOpen(false)} />
                   </div>
                 </div>
-                <SidebarBottomActions />
+                <SidebarBottomActions onNavigate={() => setMobileOpen(false)} />
               </SheetContent>
             </Sheet>
 
-            {/* Header Greeting (Visible on Desktop and Mobile) */}
             <HeaderGreeting />
           </div>
 
@@ -311,7 +313,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Main Body Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>

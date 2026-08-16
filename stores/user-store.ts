@@ -69,7 +69,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   updateUser: async (id, data) => {
     try {
       const res = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
+        method: 'PATCH', // <--- FIXED: Changed from 'PUT' to 'PATCH'
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });

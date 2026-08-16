@@ -74,6 +74,12 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        // Attach database ID and role to the user object so the JWT callback can read it
+        if (existingUser) {
+          (user as any).id = existingUser._id?.toString();
+          (user as any).role = existingUser.role;
+        }
+
         return true;
       } catch (error) {
         console.error("SignIn Error:", error);
@@ -83,16 +89,19 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, user }) {
       try {
-        if (user?.email) {
+        // When user logs in for the first time
+        if (user) {
+          token.id = (user as any).id;
+          token.role = (user as any).role;
+        } 
+        
+        // Ensure token has an id and role by checking the database if email exists
+        if (token.email) {
           await connectDB();
-
-          const dbUser = await User.findOne({
-            email: user.email.toLowerCase(),
-          });
-
+          const dbUser = await User.findOne({ email: (token.email as string).toLowerCase() });
           if (dbUser) {
-            token.id = dbUser._id.toString();
-            token.role = dbUser.role;
+            token.id = dbUser._id ? dbUser._id.toString() : token.id;
+            token.role = dbUser.role || token.role;
           }
         }
 

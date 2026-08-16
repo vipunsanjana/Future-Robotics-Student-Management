@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CreditCard, Search, Plus, Loader2, Trash2, Eye, Filter } from 'lucide-react';
+import { CreditCard, Search, Plus, Loader2, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { usePaymentStore } from '@/stores/payment-store';
-
-const PAYMENT_MODES = ['Online', 'Cash', 'Bank Transfer', 'Card', 'Cheque'];
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'LKR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount).replace('LKR', 'Rs. ');
@@ -23,7 +19,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function PaymentsPage() {
-  const { payments, total, totalAmount, page, totalPages, loading, search, mode, setSearch, setMode, setPage, fetchPayments, deletePayment } = usePaymentStore();
+  const { payments, total, totalAmount, page, totalPages, loading, search, setSearch, setPage, fetchPayments, deletePayment } = usePaymentStore();
   const [searchInput, setSearchInput] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -59,13 +55,6 @@ export default function PaymentsPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search by name, doc no, description..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="pl-9" />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={mode} onValueChange={(v) => setMode(v)}>
-                <SelectTrigger className="w-[160px]"><SelectValue placeholder="All modes" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">All modes</SelectItem>{PAYMENT_MODES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
           </div>
 
           {loading ? (
@@ -76,14 +65,13 @@ export default function PaymentsPage() {
             <>
               <div className="hidden overflow-x-auto md:block">
                 <Table>
-                  <TableHeader><TableRow><TableHead>Document No.</TableHead><TableHead>Student</TableHead><TableHead>Description</TableHead><TableHead>Mode</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Document No.</TableHead><TableHead>Student</TableHead><TableHead>Description</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {payments.map((payment) => (
                       <TableRow key={payment._id}>
                         <TableCell className="font-mono text-xs">{payment.documentNo}</TableCell>
                         <TableCell><div><p className="font-medium">{payment.studentName}</p><p className="text-xs text-muted-foreground">{payment.studentRegNo}</p></div></TableCell>
                         <TableCell className="max-w-[200px] truncate">{payment.description}</TableCell>
-                        <TableCell><Badge variant="secondary" className="text-xs">{payment.mode}</Badge></TableCell>
                         <TableCell>{formatDate(payment.date)}</TableCell>
                         <TableCell className="text-right font-semibold text-success">{formatCurrency(payment.amount)}</TableCell>
                         <TableCell className="text-right">
@@ -107,7 +95,7 @@ export default function PaymentsPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">{payment.description}</p>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2"><Badge variant="secondary" className="text-xs">{payment.mode}</Badge><span className="text-xs text-muted-foreground">{formatDate(payment.date)}</span></div>
+                      <span className="text-xs text-muted-foreground">{formatDate(payment.date)}</span>
                       <Button size="sm" variant="outline" className="text-destructive hover:text-destructive h-7" onClick={() => setDeleteId(payment._id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   </div>

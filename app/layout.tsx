@@ -6,7 +6,11 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SessionProviderWrapper } from '@/components/session-provider';
 import { Toaster } from '@/components/ui/sonner';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', 'arial'],
+});
 
 const siteUrl = process.env.NEXTAUTH_URL!;
 

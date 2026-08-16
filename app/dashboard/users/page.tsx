@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -57,7 +57,7 @@ import { useUserStore, type User } from '@/stores/user-store';
 function formatDate(dateStr: string) {
   if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
+    month: 'numeric',
     day: 'numeric',
     year: 'numeric',
   });
@@ -78,7 +78,7 @@ export default function UsersPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [createForm, setCreateForm] = useState({ name: '', email: '', role: 'manager' });
-  const [editForm, setEditForm] = useState({ name: '', role: 'manager' });
+  const [editForm, setEditForm] = useState({ name: '', email: '', role: 'manager' });
 
   useEffect(() => {
     if (isAdmin) fetchUsers();
@@ -108,16 +108,21 @@ export default function UsersPage() {
 
   const openEdit = (user: User) => {
     setEditUser(user);
-    setEditForm({ name: user.name, role: user.role });
+    setEditForm({ name: user.name, email: user.email, role: user.role });
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editUser) return;
-    if (!editForm.name.trim()) return toast.error('Full Name is required');
+    if (!editForm.name.trim()) return toast.error('Name is required');
+    if (!editForm.email.trim()) return toast.error('Email is required');
 
     setSaving(true);
-    const ok = await updateUser(editUser.id, { name: editForm.name, role: editForm.role });
+    const ok = await updateUser(editUser.id, {
+      name: editForm.name,
+      email: editForm.email,
+      role: editForm.role,
+    });
     if (ok) {
       toast.success('User details updated successfully');
       setEditUser(null);
@@ -125,6 +130,16 @@ export default function UsersPage() {
       toast.error('Failed to update user');
     }
     setSaving(false);
+  };
+
+  const handleToggleRole = async (user: User) => {
+    const newRole = user.role === 'admin' ? 'manager' : 'admin';
+    const ok = await updateUser(user.id, { name: user.name, email: user.email, role: newRole });
+    if (ok) {
+      toast.success(`User role updated to ${newRole}`);
+    } else {
+      toast.error('Failed to update role');
+    }
   };
 
   const handleDelete = async () => {
@@ -156,15 +171,21 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">User Management</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Authorized Google SSO Accounts — {users.length} registered members
+            Manage admin and manager accounts.
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="rounded-xl shadow-md">
-          <Plus className="mr-2 h-4 w-4" /> Pre-Register User
+          <Plus className="mr-2 h-4 w-4" /> Add Manager
         </Button>
       </div>
 
-      <Card className="border-border/60 bg-card/80 backdrop-blur-xl shadow-sm">
+      <Card className="border-border/60 bg-card/85 backdrop-blur-xl shadow-sm">
+        <CardHeader className="pb-3 border-b border-border/40">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <UserIcon className="h-4 w-4 text-muted-foreground" />
+            All Users ({users.length})
+          </CardTitle>
+        </CardHeader>
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 relative max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -185,10 +206,10 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User Profile</TableHead>
-                    <TableHead>System Role</TableHead>
-                    <TableHead>Auth Method</TableHead>
-                    <TableHead>Created Date</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Joined</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -219,9 +240,12 @@ export default function UsersPage() {
                                 </span>
                               )}
                             </p>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>
                         </div>
+                      </TableCell>
+
+                      <TableCell className="text-sm text-muted-foreground">
+                        {user.email}
                       </TableCell>
 
                       <TableCell>
@@ -238,22 +262,26 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
 
-                      <TableCell>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-2.5 py-1 text-xs font-semibold text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                          Google SSO
-                        </span>
-                      </TableCell>
-
                       <TableCell className="text-xs text-muted-foreground font-medium">
                         {formatDate(user.createdAt)}
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-2">
+                          {user.id !== currentUserId && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-lg text-xs font-medium"
+                              onClick={() => handleToggleRole(user)}
+                            >
+                              {user.role === 'admin' ? 'Demote to Manager' : 'Promote to Admin'}
+                            </Button>
+                          )}
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 rounded-lg"
+                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
                             onClick={() => openEdit(user)}
                           >
                             <Pencil className="h-4 w-4" />
@@ -279,11 +307,11 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Pre-Register User Modal */}
+      {/* Add Manager Modal */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Pre-Register Google Account</DialogTitle>
+            <DialogTitle>Add Manager / User</DialogTitle>
             <DialogDescription>
               Add an authorized user with their full name and Google email address.
             </DialogDescription>
@@ -302,18 +330,15 @@ export default function UsersPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="create-email">Google Email Address *</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="create-email"
-                  type="email"
-                  value={createForm.email}
-                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                  placeholder="user@gmail.com"
-                  className="pl-9 rounded-xl"
-                  required
-                />
-              </div>
+              <Input
+                id="create-email"
+                type="email"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                placeholder="user@gmail.com"
+                className="rounded-xl"
+                required
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="create-role">System Role *</Label>
@@ -335,25 +360,36 @@ export default function UsersPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pre-Register User'}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add User'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Edit User Modal */}
+      {/* Edit User Modal (Fully Editable Email, Name, Role) */}
       <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Update display name or change assigned role permissions
+            <DialogDescription className="sr-only">
+              Edit user details including email, name, and role.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEdit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="edit-name">Display Name *</Label>
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                className="rounded-xl"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-name">Name</Label>
               <Input
                 id="edit-name"
                 value={editForm.name}
@@ -363,7 +399,7 @@ export default function UsersPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="edit-role">System Role *</Label>
+              <Label htmlFor="edit-role">Role</Label>
               <Select
                 value={editForm.role}
                 onValueChange={(v) => setEditForm({ ...editForm, role: v })}

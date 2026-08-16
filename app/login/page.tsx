@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ThemeToggle } from '@/components/theme-toggle';
 import {
   Loader2,
   ShieldCheck,
@@ -34,7 +35,7 @@ function LoginForm() {
 
       {/* =========================================================================
           HEADER SECTION
-         ========================================================================= */}
+          ========================================================================= */}
       <header className="z-20 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           {/* Brand Logo & Name */}
@@ -55,12 +56,17 @@ function LoginForm() {
               </span>
             </div>
           </div>
+
+          {/* Theme Toggle Button */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
       {/* =========================================================================
           MAIN LOGIN SECTION
-         ========================================================================= */}
+          ========================================================================= */}
       <main className="z-10 flex flex-grow items-center justify-center p-4 my-8">
         <div className="w-full max-w-md space-y-6">
           {/* Main Logo & Title Banner */}
@@ -144,8 +150,8 @@ function LoginForm() {
       </main>
 
       {/* =========================================================================
-          FOOTER SECTION (Taller height with increased padding)
-         ========================================================================= */}
+          FOOTER SECTION
+          ========================================================================= */}
       <footer className="z-20 w-full border-t border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-6 sm:flex-row sm:px-8 lg:px-12">
           {/* Left Copyright */}
@@ -154,7 +160,7 @@ function LoginForm() {
             <span className="font-semibold text-foreground">Academy of Future Robotics</span>. All rights reserved.
           </p>
 
-          {/* Center / Right Developer Credit */}
+          {/* Developer Credit */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
             <Code2 className="h-4 w-4 text-primary" />
             <span>Developed with</span>
