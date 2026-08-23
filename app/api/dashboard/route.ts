@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Student from '@/models/Student';
 import Payment from '@/models/Payment';
-import Registration from '@/models/Registration'; // Added back for the Pie Chart
+import Registration from '@/models/Registration';
 import { requireAuth } from '@/lib/auth-helpers';
 
 export async function GET() {
@@ -76,7 +76,6 @@ export async function GET() {
   });
 
   const modeAgg = await Registration.aggregate([
-    // Filters out any empty/null modes so they don't break the chart
     { $match: { mode: { $nin: [null, "", undefined] } } }, 
     { $group: { _id: '$mode', count: { $sum: 1 }, total: { $sum: '$amount' } } },
     { $sort: { total: -1 } }
@@ -88,8 +87,31 @@ export async function GET() {
     count: m.count
   }));
 
+  // 🔥 Fully fixed aggregation with $lookup and $trim to clean leading/trailing spaces
   const courseDistributionRaw = await Student.aggregate([
-    { $group: { _id: '$course', count: { $sum: 1 } } }, 
+    {
+      $lookup: {
+        from: 'courses',
+        localField: 'courseCode',
+        foreignField: 'courseCode',
+        as: 'courseDetails'
+      }
+    },
+    {
+      $addFields: {
+        rawCourseName: { $ifNull: [{ $arrayElemAt: ['$courseDetails.title', 0] }, '$course', 'Unknown Course'] }
+      }
+    },
+    {
+      $addFields: {
+        cleanName: { 
+          $trim: { 
+            input: '$rawCourseName' 
+          } 
+        }
+      }
+    },
+    { $group: { _id: '$cleanName', count: { $sum: 1 } } }, 
     { $sort: { count: -1 } }, 
     { $limit: 10 }
   ]).catch(() => []);
@@ -99,7 +121,6 @@ export async function GET() {
     value: c.count
   }));
 
-  // --- Final Return ---
   return NextResponse.json({
     totalStudents, 
     totalPayments,

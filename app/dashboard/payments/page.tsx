@@ -76,7 +76,11 @@ export default function PaymentsPage() {
                         <TableCell className="text-right font-semibold text-success">{formatCurrency(payment.amount)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button asChild size="icon" variant="ghost" className="h-8 w-8"><Link href={`/dashboard/students?search=${encodeURIComponent(payment.studentRegNo)}`}><Eye className="h-4 w-4" /></Link></Button>
+                            <Button asChild size="icon" variant="ghost" className="h-8 w-8">
+                              <Link href={`/dashboard/students/${(payment as any).studentId}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(payment._id)}><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         </TableCell>
@@ -96,7 +100,14 @@ export default function PaymentsPage() {
                     <p className="text-sm text-muted-foreground">{payment.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{formatDate(payment.date)}</span>
-                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive h-7" onClick={() => setDeleteId(payment._id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <div className="flex items-center gap-2">
+                        <Button asChild size="sm" variant="outline" className="h-7">
+                          <Link href={`/dashboard/students/${(payment as any).studentId}`}>
+                            <Eye className="h-3.5 w-3.5 mr-1" /> View
+                          </Link>
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive h-7" onClick={() => setDeleteId(payment._id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -6,7 +6,7 @@ import { requireAuth, getCurrentUser } from '@/lib/auth-helpers';
 
 function generateDocumentNo(): string {
   const n = new Date();
-  return `FR-DOC-${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}${String(n.getSeconds()).padStart(2,'0')}`;
+  return `DOC-${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}${String(n.getSeconds()).padStart(2,'0')}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
 export async function GET(request: Request) {
@@ -47,8 +47,15 @@ export async function GET(request: Request) {
   const totalAmount = await Payment.aggregate([{ $match: query }, { $group: { _id: null, total: { $sum: '$amount' } } }]);
 
   return NextResponse.json({
-    payments: payments.map((p) => ({ ...p, _id: p._id.toString() })),
-    total, page, totalPages: Math.ceil(total / limit),
+    payments: payments.map((p) => ({ 
+      ...p, 
+      _id: p._id.toString(),
+      studentId: p.studentId ? p.studentId.toString() : '',
+      createdBy: p.createdBy ? p.createdBy.toString() : undefined,
+    })),
+    total, 
+    page, 
+    totalPages: Math.ceil(total / limit),
     totalAmount: totalAmount[0]?.total || 0,
   });
 }
@@ -65,12 +72,25 @@ export async function POST(request: Request) {
     if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
 
     const payment = await Payment.create({
-      studentId: body.studentId, studentName: student.name, studentRegNo: student.regNo,
-      amount: body.amount, date: body.date, description: body.description, mode: body.mode,
+      studentId: body.studentId, 
+      studentName: student.name, 
+      studentRegNo: student.regNo,
+      courseCode: body.courseCode ? body.courseCode.trim().toUpperCase() : (student.courseCode || 'UNKNOWN'),
+      amount: Number(body.amount), 
+      date: body.date, 
+      description: body.description, 
+      isCompleted: Boolean(body.isCompleted), // Captures checkbox state
       documentNo: body.documentNo || generateDocumentNo(),
       createdBy: (currentUser as any)?.id,
     });
-    return NextResponse.json({ ...payment.toObject(), _id: payment._id.toString() }, { status: 201 });
+
+    const paymentObj = payment.toObject();
+    return NextResponse.json({ 
+      ...paymentObj, 
+      _id: paymentObj._id.toString(),
+      studentId: paymentObj.studentId ? paymentObj.studentId.toString() : '',
+      createdBy: paymentObj.createdBy ? paymentObj.createdBy.toString() : undefined,
+    }, { status: 201 });
   } catch (error: any) {
     if (error.code === 11000) return NextResponse.json({ error: 'Document number already exists' }, { status: 409 });
     return NextResponse.json({ error: error.message || 'Failed to create payment' }, { status: 500 });

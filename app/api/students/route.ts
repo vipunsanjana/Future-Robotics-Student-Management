@@ -45,11 +45,16 @@ export async function POST(request: Request) {
     if (existing) return NextResponse.json({ error: 'A student with this registration number already exists' }, { status: 409 });
 
     const student = await Student.create({
-      name: body.name, phone: body.phone, regNo: body.regNo.toUpperCase().trim(),
-      course: body.course, email: body.email || undefined, address: body.address || undefined,
+      name: body.name, 
+      phone: body.phone, 
+      regNo: body.regNo.toUpperCase().trim(),
+      course: body.course, 
+      courseCode: body.courseCode ? body.courseCode.toUpperCase().trim() : 'UNKNOWN',
     });
+    
     return NextResponse.json({ ...student.toObject(), _id: student._id.toString() }, { status: 201 });
   } catch (error: any) {
+    console.error('Create student error:', error);
     if (error.code === 11000) return NextResponse.json({ error: 'Registration number already exists' }, { status: 409 });
     return NextResponse.json({ error: error.message || 'Failed to create student' }, { status: 500 });
   }

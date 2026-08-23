@@ -9,6 +9,6 @@ export default async function EditStudentPage({ params }: { params: { id: string
   if (!student) notFound();
   return <StudentForm mode="edit" initialData={{
     _id: student._id.toString(), name: student.name, phone: student.phone,
-    regNo: student.regNo, course: student.course, email: student.email || '', address: student.address || '',
+    regNo: student.regNo, course: student.course, courseCode: student.courseCode,
   }} />;
 }

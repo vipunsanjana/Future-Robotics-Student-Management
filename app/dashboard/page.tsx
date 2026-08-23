@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Loader2,
   GraduationCap,
-  Cpu,
   Code2,
   Heart,
   Sparkles,
@@ -83,7 +82,6 @@ export default function DashboardPage() {
     );
   }
 
-  // This will completely block "Unspecified" or empty modes from ever reaching the chart
   const safeModeBreakdown = (data.modeBreakdown || [])
     .filter((item: any) => item.name && item.name.trim() !== '' && item.name !== 'Unspecified')
     .map((item: any) => ({
@@ -262,43 +260,55 @@ export default function DashboardPage() {
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Course Distribution */}
+          {/* Course Distribution Scrollable Chart */}
           <Card className="border-border/60 bg-card/80 shadow-sm backdrop-blur-xl">
             <CardHeader>
               <CardTitle className="text-lg font-bold">Course Distribution</CardTitle>
               <CardDescription>Number of active students enrolled per course</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={safeCourseDistribution} layout="vertical" margin={{ left: 10, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 11 }}
-                    stroke="hsl(var(--muted-foreground))"
-                    width={150}
-                    tickFormatter={(v: string) => (v.length > 22 ? v.slice(0, 22) + '…' : v)}
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                    }}
-                    formatter={(value: any) => [value, 'Students']}
-                  />
-                  {/* Map over the bars to apply dynamic colors */}
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {safeCourseDistribution.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {safeCourseDistribution.length === 0 ? (
+                <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+                  No course distribution data available
+                </div>
+              ) : (
+                <div className="max-h-[320px] overflow-y-auto pr-2 scrollbar-thin">
+                  <div style={{ height: `${Math.max(safeCourseDistribution.length * 45, 250)}px`, width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={safeCourseDistribution} 
+                        layout="vertical" 
+                        margin={{ left: 10, right: 30, top: 5, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          tick={{ fontSize: 11 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          width={150}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                          }}
+                          formatter={(value: any) => [value, 'Students']}
+                        />
+                        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                          {safeCourseDistribution.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -309,14 +319,14 @@ export default function DashboardPage() {
               <CardDescription>Latest student transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
                 {data.recentPayments.length === 0 ? (
                   <div className="flex h-[250px] flex-col items-center justify-center text-muted-foreground gap-2">
                     <GraduationCap className="h-10 w-10 opacity-50" />
                     <p className="text-sm">No recent payments recorded</p>
                   </div>
                 ) : (
-                  data.recentPayments.map((payment) => (
+                  data.recentPayments.map((payment: any) => (
                     <div
                       key={payment._id}
                       className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/40 p-3 transition-colors hover:bg-secondary/50"

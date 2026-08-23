@@ -16,6 +16,7 @@ import {
   Cpu,
   Sparkles,
   Settings,
+  ClipboardList
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/students', label: 'Students', icon: Users },
+  { href: '/dashboard/registrations', label: 'Registrations', icon: ClipboardList },
   { href: '/dashboard/payments', label: 'Payments', icon: CreditCard },
 ];
 
