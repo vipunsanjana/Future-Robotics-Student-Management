@@ -12,6 +12,7 @@ import {
   Code2,
   Heart,
   Sparkles,
+  UserPlus,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +27,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
   Legend,
 } from 'recharts';
 import { useDashboardStore } from '@/stores/dashboard-store';
@@ -138,8 +137,8 @@ export default function DashboardPage() {
           MAIN CONTENT SECTION
          ========================================================================= */}
       <main className="z-10 mx-auto w-full max-w-7xl flex-grow space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-        {/* Page Title */}
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        {/* Page Title & Navigation Action */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Dashboard</h1>
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
@@ -147,6 +146,16 @@ export default function DashboardPage() {
               Real-time analytics and performance metrics for Future Robotics
             </p>
           </div>
+
+          <a
+            href="https://future-robotics-registration.netlify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span>Register New Student</span>
+          </a>
         </div>
 
         {/* Stats Cards */}
@@ -179,15 +188,15 @@ export default function DashboardPage() {
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Revenue Trend Chart */}
+          {/* Revenue Trend Chart (Weekly View) */}
           <Card className="border-border/60 bg-card/80 shadow-sm backdrop-blur-xl">
             <CardHeader>
               <CardTitle className="text-lg font-bold">Revenue Trend</CardTitle>
-              <CardDescription>Monthly revenue generated over the last 6 months</CardDescription>
+              <CardDescription>Weekly revenue generated over the last 6 weeks</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={data.monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <AreaChart data={data.monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
@@ -195,7 +204,13 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fontSize: 10 }} 
+                    stroke="hsl(var(--muted-foreground))" 
+                    angle={-15}
+                    textAnchor="end"
+                  />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
                     contentStyle={{
@@ -260,55 +275,55 @@ export default function DashboardPage() {
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Course Distribution Scrollable Chart */}
+          
+          {/* Course Distribution - Stylized List View */}
           <Card className="border-border/60 bg-card/80 shadow-sm backdrop-blur-xl">
             <CardHeader>
               <CardTitle className="text-lg font-bold">Course Distribution</CardTitle>
               <CardDescription>Number of active students enrolled per course</CardDescription>
             </CardHeader>
             <CardContent>
-              {safeCourseDistribution.length === 0 ? (
-                <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-                  No course distribution data available
-                </div>
-              ) : (
-                <div className="max-h-[320px] overflow-y-auto pr-2 scrollbar-thin">
-                  <div style={{ height: `${Math.max(safeCourseDistribution.length * 45, 250)}px`, width: '100%' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={safeCourseDistribution} 
-                        layout="vertical" 
-                        margin={{ left: 10, right: 30, top: 5, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                        <YAxis
-                          type="category"
-                          dataKey="name"
-                          tick={{ fontSize: 11 }}
-                          stroke="hsl(var(--muted-foreground))"
-                          width={150}
-                        />
-                        <Tooltip
-                          cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--popover))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                          }}
-                          formatter={(value: any) => [value, 'Students']}
-                        />
-                        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                          {safeCourseDistribution.map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+              <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 scrollbar-thin">
+                {safeCourseDistribution.length === 0 ? (
+                  <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+                    No course distribution data available
                   </div>
-                </div>
-              )}
+                ) : (
+                  safeCourseDistribution.map((course: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start justify-between gap-4 rounded-xl border border-border/50 bg-background/50 p-3 transition-colors hover:bg-secondary/40"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                          style={{ backgroundColor: `${PIE_COLORS[index % PIE_COLORS.length]}20` }}
+                        >
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                          />
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-semibold leading-snug text-foreground">
+                            {course.name}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            Active Enrollments
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="shrink-0 pt-0.5">
+                        <Badge variant="secondary" className="px-2.5 py-1 text-sm font-bold shadow-sm border-primary/10">
+                          {course.value}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -364,13 +379,11 @@ export default function DashboardPage() {
          ========================================================================= */}
       <footer className="z-20 mt-8 w-full border-t border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-6 sm:flex-row sm:px-8 lg:px-12">
-          {/* Left Copyright */}
           <p className="text-xs text-muted-foreground sm:text-sm">
             © {new Date().getFullYear()}{' '}
             <span className="font-semibold text-foreground">Future Robotics (PVT) LTD</span>. All rights reserved.
           </p>
 
-          {/* Developer Credit */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
             <Code2 className="h-4 w-4 text-primary" />
             <span>Developed with</span>

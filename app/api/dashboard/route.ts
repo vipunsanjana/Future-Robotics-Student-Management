@@ -30,50 +30,70 @@ export async function GET() {
   ]);
   const todayRevenue = todayAgg[0]?.total || 0;
 
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  
-  interface MonthData {
-    month: string;
-    year: number;
-    monthIdx: number;
+  // --- Weekly Revenue Trend Logic (Last 6 Weeks) ---
+  interface WeekData {
+    week: string;
+    startDate: Date;
+    endDate: Date;
     revenue: number;
     count: number;
   }
-  const last6Months: MonthData[] = [];
-  const now = new Date();
   
+  const last6Weeks: WeekData[] = [];
+  const now = new Date();
+
+  // Generate last 6 weeks ranges (Week 1 being the current week, going back 5 weeks)
   for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    last6Months.push({
-      month: `${monthNames[d.getMonth()]} ${d.getFullYear()}`,
-      year: d.getFullYear(),
-      monthIdx: d.getMonth() + 1,
-      revenue: 0, 
+    const end = new Date(now);
+    end.setDate(now.getDate() - (i * 7));
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+
+    const label = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    
+    last6Weeks.push({
+      week: label,
+      startDate: start,
+      endDate: end,
+      revenue: 0,
       count: 0
     });
   }
 
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const sixWeeksAgo = last6Weeks[0].startDate;
 
-  const monthlyAgg = await Payment.aggregate([
+  const weeklyAgg = await Payment.aggregate([
     { $addFields: { dateObj: { $dateFromString: { dateString: '$date' } } } },
-    { $match: { dateObj: { $gte: sixMonthsAgo } } },
+    { $match: { dateObj: { $gte: sixWeeksAgo } } },
     {
       $group: {
-        _id: { year: { $year: '$dateObj' }, month: { $month: '$dateObj' } },
-        total: { $sum: '$amount' },
-        count: { $sum: 1 },
-      },
-    },
+        _id: null,
+        payments: { 
+          $push: { 
+            dateObj: '$dateObj', 
+            amount: '$amount' 
+          } 
+        }
+      }
+    }
   ]).catch(() => []);
 
-  monthlyAgg.forEach(agg => {
-    const targetMonth = last6Months.find(m => m.year === agg._id.year && m.monthIdx === agg._id.month);
-    if (targetMonth) {
-      targetMonth.revenue = agg.total;
-      targetMonth.count = agg.count;
-    }
-  });
+  if (weeklyAgg.length > 0 && weeklyAgg[0].payments) {
+    weeklyAgg[0].payments.forEach((p: { dateObj: Date; amount: number }) => {
+      const pDate = new Date(p.dateObj);
+      const targetWeek = last6Weeks.find(w => pDate >= w.startDate && pDate <= w.endDate);
+      if (targetWeek) {
+        targetWeek.revenue += p.amount;
+        targetWeek.count += 1;
+      }
+    });
+  }
+
+  const monthlyData = last6Weeks.map(w => ({
+    month: w.week, // reusing the 'month' key so Recharts dataKey='month' works seamlessly
+    revenue: w.revenue,
+    count: w.count
+  }));
 
   const modeAgg = await Registration.aggregate([
     { $match: { mode: { $nin: [null, "", undefined] } } }, 
@@ -87,7 +107,6 @@ export async function GET() {
     count: m.count
   }));
 
-  // 🔥 Fully fixed aggregation with $lookup and $trim to clean leading/trailing spaces
   const courseDistributionRaw = await Student.aggregate([
     {
       $lookup: {
@@ -128,7 +147,7 @@ export async function GET() {
     todayRevenue,
     todayCount,
     recentPayments,
-    monthlyData: last6Months, 
+    monthlyData,
     modeBreakdown, 
     courseDistribution,
   });
